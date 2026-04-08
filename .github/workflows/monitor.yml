@@ -1,0 +1,34 @@
+name: Monitor Citas Leganes
+
+on:
+  schedule:
+    # Ejecutar cada 5 minutos (24h/día, 7 días/semana)
+    - cron: '*/5 * * * *'
+  workflow_dispatch:   # Permite lanzarlo manualmente desde GitHub con un click
+
+jobs:
+  check-citas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Obtener codigo del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Instalar dependencias Python
+        run: pip install -r requirements.txt
+
+      - name: Instalar navegador Chromium (Playwright)
+        run: python -m playwright install chromium --with-deps
+
+      - name: Ejecutar monitor de citas
+        env:
+          SMTP_USER:     ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        run: python monitor_citas.py
